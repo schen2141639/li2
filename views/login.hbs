@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="/css/style.css">
+
+        <title>Login</title>
+
+        <script type="application/javascript">
+            function validate() {
+                const data = new URLSearchParams();
+                data.append('name', document.getElementById("name").value);
+                data.append("password", document.getElementById("password").value);
+                var params = { name: document.getElementById("name").value, password: document.getElementById("password").value };
+                var request = new XMLHttpRequest();
+                request.open("POST", "/api/login");
+                request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                request.onload = function () {
+                    var result = JSON.parse(request.response);
+                    if (result.status === "y") {
+                        window.location.href = "/index";
+                    } else {
+                        alert(result.meg);
+                        window.location.href = "/quittolanding";
+                    }
+                };
+                request.send(data.toString());
+            }
+        </script>
+    </head>
+    <body>
+        <header>
+            <a href="/"><img src="/images/logo.jpg"></a>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                </ul>
+            </nav>
+            <h4>abcda books </h4>
+         </header>
+        <main>
+            <section>
+                {{!-- {{{body}}} --}}
+            </section>
+            
+            <form action="index.hbs" method="POST" id="loginForm">
+                <caption><h2>Login</h2></caption>
+                <input class="form-control" type="text" name="name" id="name" placeholder="enter account" />
+                <input class="form-control" type="text" name="password" id="password" placeholder="enter password" />
+                <button type="button" class="btn btn-block btn-danger" onclick="validate()" id="btnLogin">Login</button>
+            </form>
+        </main>
+        <footer>
+            <a>wdltyarwgb </a></p>
+        </footer> 
+    </body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link rel="stylesheet" href="/css/style.css">
+
+	<title>Library Page : {{title}}</title>
+</head>
+
+<body onload="bodyLoaded()">
+	<header>
+		<a href="/"><img src="/images/logo.jpg"></a>
+		<nav>
+			<ul>
+				<li>
+					<form method="POST" action="/logout">
+						<label id="logName">{{username}}</label>
+						<button id="logOut" l>Log Out</label>
+					</form>
+				</li>
+			</ul>
+		</nav>
+		<h4>   library books </h4>
+	</header>
+
+	<main>
+		<h1>      Library Page </h1>
+		
+		<article id="box1">
+			<h2>Available Books</h2>
+			<ul>
+				{{#each books}}
+					{{#if this.available}}
+						<li>
+							{{@key}} Author - {{this.author}}
+							<input type="checkbox" name="available" class="available" value="{{ @key }}" onclick="availableClick()">
+						</li>
+					{{/if}}
+				{{/each}}
+			</ul>
+			<br>
+			<button id="borrow" disabled="" onclick="borrowBook()">borrow</button>
+		</article>
+		<article id="box2">
+			<h2>Rented Books</h2>
+			<ul>
+				{{#each books}}
+					{{#unless this.available}}
+						<li>
+							{{@key}} Author - {{this.author}} 
+							<input type="checkbox" name="rented" class="rented" value="{{ @key }}" onclick="rentedClick()">
+						</li>
+					{{/unless}}
+				{{/each}}
+			</ul>
+			<br>
+			<button id="return" disabled="" onclick="returnBook()">return</button>
+		</article>
+	</main>
+	<script>
+		let books = {};
+		function bodyLoaded(event) { 
+			fetch('/books', {
+						headers: {
+							'Accept': 'application/json',
+						},
+					}
+			)
+			.then(response => response.json())
+			.then(response => books = response )
+			.catch(error => console.log("Error fetching data!"));
+		}
+
+		function availableClick(event) {
+			const btnBorrow = document.querySelector('#borrow');
+			btnBorrow.disabled = true;
+			const available = document.querySelectorAll('.available');
+			available.forEach(function(book) {
+				if(book.checked) 
+					btnBorrow.disabled = false;
+			});
+		}
+
+		function rentedClick(event) {
+			const btnReturn = document.querySelector('#return');
+			btnReturn.disabled = true;
+			const rented = document.querySelectorAll('.rented');
+			rented.forEach(function(book) {
+				if(book.checked) 
+					btnReturn.disabled = false;
+			});
+		}
+
+		function borrowBook() {
+			let change = false;
+			const available = document.querySelectorAll('.available');
+			available.forEach(function(book) {
+				if(book.checked) {
+					books[book.value].available = false;
+					change = true;
+				}
+			});
+			if(change == true) {
+				fetch('/borrow', {
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json'
+					},
+					method: 'PUT',
+					body: JSON.stringify(books)
+				})
+				.then(console.log("Data updated successfully"))
+				.catch(error => console.log(error.message));
+			}		
+			console.log(books);
+			refreshData();
+		}
+
+		function returnBook() {
+			let change = false;
+			const rented = document.querySelectorAll('.rented');
+			rented.forEach(function(book) {
+				if(book.checked) {
+					books[book.value].available = true;				
+					change = true;
+				}
+			});
+			if(change == true) {
+				fetch('/return', {
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json'
+					},
+					method: 'PUT',
+					body: JSON.stringify(books)
+				})
+				.then(console.log("Data updated successfully"))
+				.catch(error => console.log(error.message));
+			}		
+			console.log(books);
+			refreshData();
+		}
+
+		function refreshData() {
+			const box1 = document.querySelector('#box1');
+			const box2 = document.querySelector('#box2');
+
+			let content = '<h2>Available Books</h2>';
+			content += '<ul>';
+			for(const title in books)
+			{
+				if(books[title].available) {
+					content += '<li>';
+					content += `${title} Author - ${books[title].author} `;
+					content += `<input type="checkbox" name="available" class="available" value="${title}" onclick="availableClick()">`;
+					content += '</li>';
+				}
+			}
+			content += '</ul><br><button id="borrow" disabled="" onclick="borrowBook()">borrow</button><br>';
+
+			box1.innerHTML = content;
+
+			content = '<h2>Rented Books</h2>';
+			content += '<ul>';
+			for(const title in books)
+			{
+				if(!books[title].available) {
+					content += '<li>';
+					content += `${title} Author - ${books[title].author} `;
+					content += `<input type="checkbox" name="rented" class="rented" value="${title}" onclick="rentedClick()">`;
+					content += '</li>';
+				}
+			}
+			content += '</ul><br><button id="return" disabled="" onclick="returnBook()">return</button><br>';
+
+			box2.innerHTML = content;
+		}
+	</script>
+</body>
+
+</html>
